@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arquitectura de Computadoras · Proyecto final</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: libro de clase hecho con cuidado, claro y ordenado, de estudiante a maestro.
+   IDEA: la placa madre: cada sección es un componente conectado al mismo bus (la barra de navegación).
+   PICTURE: foto real de la placa de servidor de la práctica, a sangre, con las unidades como "ranuras".
+   COLOUR and TYPE: la paleta de la página original (azul marino, crema, naranja, verde azulado); Archivo + Hanken Grotesk.
+   LAYOUT: barra fija de secciones, una vista a la vez (como la página original), contenido a 1180px. */
+:root{color-scheme:light dark;
+--bg:light-dark(#f4f1ea,#10151f);--card:light-dark(#ffffff,#1a2232);--ink:light-dark(#172033,#ece8df);--mute:light-dark(#5b6475,#a6adbb);
+--navy:#172033;--navy2:#24324a;--orange:#e07a35;--teal:#3c7d7a;--teal2:light-dark(#2f6765,#7cc4bf);--line:light-dark(#e3e0d8,#2c3648);--soft:light-dark(#ebe6db,#151c29)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Hanken Grotesk",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3,h4{font-family:Archivo,system-ui,sans-serif;line-height:1.1;margin:0 0 .5em;text-wrap:balance}
+h1{font-size:clamp(34px,6vw,56px);font-weight:800}
+h2{font-size:clamp(28px,4vw,40px);font-weight:800}
+h3{font-size:21px;font-weight:600}
+h4{font-size:17px;font-weight:600}
+p{margin:0 0 .9em;max-width:70ch}
+a{color:var(--teal2)}
+img{max-width:100%;display:block}
+.wrap{max-width:1180px;margin:0 auto;padding:0 max(4vw,16px)}
+.band{padding-block:clamp(28px,4vw,56px)}
+/* barra */
+.bar{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;box-shadow:0 2px 0 var(--orange)}
+.bar .wrap{display:flex;align-items:center;gap:14px;min-height:60px}
+.brand{font:800 17px Archivo,sans-serif;color:#fff;text-decoration:none;white-space:nowrap}
+.brand b{color:var(--orange)}
+.nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1}
+.nav::-webkit-scrollbar{display:none}
+.nav a{flex:none;color:#d7dbe4;text-decoration:none;padding:10px 12px;border-radius:8px;font-weight:500;white-space:nowrap;min-height:44px;display:flex;align-items:center}
+.nav a:hover{background:var(--navy2);color:#fff}
+.nav a.on{background:var(--orange);color:#fff}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+/* vistas */
+.view{display:none}.view.on{display:block;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.view.on{animation:none}}
+/* portada */
+.hero{background:var(--navy);color:#fff;position:relative;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(20px,4vw,48px);align-items:center;padding-block:clamp(32px,5vw,64px)}
+.hero p{color:#cfd5e1}
+.hero .tag{display:inline-block;background:var(--orange);color:#fff;font-weight:600;font-size:14px;padding:4px 12px;border-radius:99px;margin-bottom:16px}
+.hero figure{margin:0;position:relative}
+.hero figure img{border-radius:14px;aspect-ratio:4/3;object-fit:cover;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.hero figcaption{font-size:14px;color:#aab3c4;margin-top:8px}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:15px;margin:18px 0 0;color:#e6e9ef}
+.meta dt{color:#8f9ab0}.meta dd{margin:0}
+@media(max-width:800px){.hero .wrap{grid-template-columns:1fr}}
+/* tarjetas */
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))}
+.grid.two{grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card h3,.card h4{margin-bottom:.4em}
+.card p:last-child,.card ul:last-child{margin-bottom:0}
+.card ul{padding-left:1.1em;margin:0 0 .8em}
+.card li{margin:.2em 0}
+.dl{list-style:none;padding:0!important}.dl li{border-top:1px solid var(--line)}.dl li:first-child{border-top:0}.dl a{display:flex;align-items:center;min-height:44px;font-weight:600;text-decoration:none}.dl a::before{content:'PDF';font-size:11px;font-weight:800;background:var(--orange);color:#fff;border-radius:4px;padding:2px 6px;margin-right:10px}.dl a[href$='.html']::before{content:'WEB';background:var(--teal)}
+.num{font:800 13px Archivo,sans-serif;color:var(--orange);display:block;margin-bottom:4px}
+a.card{text-decoration:none;color:inherit;display:block;transition:transform .15s,border-color .15s}
+a.card:hover{transform:translateY(-3px);border-color:var(--orange)}
+.unitcard{border-top:5px solid var(--teal)}
+.unitcard .num{font-size:15px}
+.lead{font-size:18px;color:var(--mute);max-width:72ch}
+.head{padding-top:clamp(28px,4vw,48px)}
+.kicker{font-weight:600;color:var(--orange);margin-bottom:6px}
+.team{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 18px}
+.team span{background:var(--soft);border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:14px}
+.note{font-size:14px;color:var(--mute)}
+.pill{display:inline-block;background:var(--teal);color:#fff;border-radius:6px;padding:1px 8px;font-size:13px;font-weight:600}
+.sublinks{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px;margin-bottom:8px}
+.sublinks a{flex:none;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:8px 14px;text-decoration:none;color:var(--ink);font-size:15px;white-space:nowrap}
+.sublinks a:hover{border-color:var(--orange)}
+@media(min-width:900px){.sublinks{position:sticky;top:60px;z-index:5;background:var(--bg)}}
+.sec{margin-top:36px}
+.sec>h3{font-size:26px;font-family:Archivo,sans-serif;font-weight:800}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media(max-width:760px){.split{grid-template-columns:1fr}}
+/* tablas */
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:15px}
+th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--navy);color:#fff;font-weight:600;white-space:nowrap}
+td.r,th.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tbl{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tbl.scroll{overflow-x:auto}
+tr.hl td{background:light-dark(#fdf1e8,#2a2219)}
+/* diagramas */
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.flow span{background:var(--navy);color:#fff;border-radius:8px;padding:6px 12px;font-weight:600;font-size:14px}
+.flow i{font-style:normal;color:var(--orange);font-weight:800}
+.pipe{display:grid;grid-template-columns:70px repeat(7,minmax(0,1fr));gap:3px;font-size:12px;font-weight:600;margin:12px 0}
+.pipe div{padding:6px 2px;text-align:center;border-radius:4px}
+.pipe .h{color:var(--mute);background:none}
+.s1{background:#172033;color:#fff}.s2{background:#24324a;color:#fff}.s3{background:#3c7d7a;color:#fff}.s4{background:#5d9c98;color:#fff}.s5{background:#e07a35;color:#fff}
+.stack3{display:grid;gap:6px;margin:10px 0}
+.stack3 div{border-radius:8px;padding:8px 12px;color:#fff;font-weight:600;font-size:14px;display:flex;justify-content:space-between;gap:10px}
+/* fotos */
+.ph{border-radius:10px;width:100%;aspect-ratio:4/3;object-fit:cover;cursor:zoom-in;background:var(--soft)}
+.cpu{width:110px;height:110px;object-fit:cover;border-radius:10px;float:right;margin:0 0 10px 14px;cursor:zoom-in}
+/* presentaciones */
+.deck{background:var(--navy);border-radius:16px;padding:14px;color:#fff;margin:14px 0}
+.deck .top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.deck .top b{font-family:Archivo,sans-serif}
+.strip{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding-bottom:6px}
+.strip img{flex:0 0 min(100%,640px);scroll-snap-align:center;border-radius:10px;aspect-ratio:16/9;object-fit:cover;background:#0d1320;cursor:zoom-in}
+.ctl{display:flex;gap:8px;align-items:center}
+.ctl button,.btn{min-width:44px;min-height:44px;border:0;border-radius:10px;background:var(--orange);color:#fff;font:600 16px "Hanken Grotesk",sans-serif;cursor:pointer;padding:0 14px}
+.ctl button.ghost{background:var(--navy2)}
+.ctl span{font-variant-numeric:tabular-nums;min-width:64px;text-align:center}
+.btn{display:inline-flex;align-items:center;text-decoration:none}
+/* barras cotización */
+.bars{display:grid;gap:12px}
+.bars .row{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:12px;align-items:center}
+.bars .lbl{font-size:14px;font-weight:600}
+.bars .b{height:14px;border-radius:7px;margin:3px 0}
+.bars .b.l{background:var(--orange)}.bars .b.w{background:var(--teal)}
+.bars small{display:block;font-size:13px;color:var(--mute);white-space:nowrap}
+.legend{display:flex;gap:16px;font-size:14px;margin:8px 0 14px;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+@media(max-width:560px){.bars .row{grid-template-columns:1fr;gap:2px}}
+/* calculadora */
+.calc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:center}
+.calc label{display:block;font-weight:600;margin-top:10px}
+.calc input[type=range]{width:100%;height:44px;accent-color:var(--orange)}
+.big{font:800 clamp(44px,8vw,72px)/1 Archivo,sans-serif;color:var(--orange)}
+@media(max-width:600px){.calc{grid-template-columns:1fr}}
+.frame{width:100%;height:min(80vh,720px);border:0;border-radius:14px;background:#0d1320}
+/* visor */
+.lb{position:fixed;inset:0;background:rgba(8,12,20,.94);z-index:50;display:none;align-items:center;justify-content:center;padding:56px 12px 70px}
+.lb.on{display:flex}
+.lb img{max-height:100%;max-width:min(100%,1400px);border-radius:8px;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+
+.lb .ctl{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);color:#fff}
+.lb .ctl.x{top:10px;right:12px;bottom:auto;left:auto;transform:none}
+.lb .ctl button{background:#2b3a55}.lb .ctl.x button{background:var(--orange)}
+.lb .cap{position:absolute;top:16px;left:16px;right:72px;color:#cfd5e1;font-size:14px}
+footer{background:var(--navy);color:#aab3c4;margin-top:56px;font-size:14px}
+footer .wrap{padding-block:28px;display:flex;flex-wrap:wrap;gap:8px 28px;justify-content:space-between}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 10px;padding-inline-start:8.5em;text-align:start;white-space:normal}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;font-weight:600;color:var(--mute)}.stack td:empty{display:none}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#inicio">Arq. de <b>Computadoras</b></a>
+    <nav class="nav" id="nav" aria-label="Secciones">
+      <a href="#inicio">Inicio</a>
+      <a href="#unidad-1">Unidad 1</a>
+      <a href="#unidad-2">Unidad 2</a>
+      <a href="#unidad-3">Unidad 3</a>
+      <a href="#unidad-4">Unidad 4</a>
+      <a href="#practicas">Prácticas</a>
+      <a href="#tareas">Tareas</a>
+      <a href="#galeria">Galería</a>
+      <a href="#documentos">Documentos</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- ================= INICIO ================= -->
+<section class="view" id="v-inicio">
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <span class="tag">Proyecto final</span>
+        <h1>Arquitectura de Computadoras</h1>
+        <p class="lead" style="color:#cfd5e1">Todo el temario de la materia en un solo lugar: las cuatro unidades con las exposiciones de cada equipo, las prácticas de laboratorio con placas madre y procesadores reales, y las tareas de investigación, diseño y cotización de equipos.</p>
+        <dl class="meta">
+          <dt>Alumno</dt><dd>Alfredo Colunga Sánchez</dd>
+          <dt>Docente</dt><dd>Miguel Maldonado Leza</dd>
+          <dt>Grupo</dt><dd>6AC · 18:00 – 19:00</dd>
+          <dt>Escuela</dt><dd>Instituto Tecnológico de Saltillo · Ing. en Sistemas Computacionales</dd>
+        </dl>
+      </div>
+      <figure>
+        <img src="img/fotos/3.jpg" alt="Placa madre de servidor HP de doble socket revisada en la práctica 1" class="zoom" data-cap="Placa de servidor HP de doble socket (práctica 1)">
+        <figcaption>Placa de servidor HP de doble socket, revisada en el laboratorio.</figcaption>
+      </figure>
+    </div>
+  </div>
+  <div class="wrap band">
+    <h2>Temario</h2>
+    <div class="grid">
+      <a class="card unitcard" href="#unidad-1"><span class="num">Unidad 1</span><h3>Arquitecturas de cómputo</h3><p>Von Neumann y Harvard, segmentación, multiprocesamiento, CPU, ALU, registros, memoria, E/S, buses e interrupciones.</p></a>
+      <a class="card unitcard" href="#unidad-2"><span class="num">Unidad 2</span><h3>Estructura y funcionamiento de la CPU</h3><p>Organización del procesador, registros, ciclo de instrucción, segmentación, ISA y modos de direccionamiento.</p></a>
+      <a class="card unitcard" href="#unidad-3"><span class="num">Unidad 3</span><h3>Selección de componentes</h3><p>Chipset, controladores de bus, interrupciones, DMA, temporización, video, aplicaciones y ambientes de servicio.</p></a>
+      <a class="card unitcard" href="#unidad-4"><span class="num">Unidad 4</span><h3>Procesamiento paralelo</h3><p>Amdahl y Gustafson, taxonomía de Flynn, multiprocesadores, coherencia de caché y redes de interconexión.</p></a>
+    </div>
+    <h2 class="sec">Trabajo práctico</h2>
+    <div class="grid">
+      <a class="card" href="#practicas"><span class="num">Laboratorio</span><h3>Prácticas 1 y 2</h3><p>Tres placas madre (dos de escritorio LGA 775 y una de servidor) y tres procesadores Intel identificados por su encapsulado.</p></a>
+      <a class="card" href="#tareas"><span class="num">5 tareas</span><h3>Procesadores, RAM, gamas, diseño y cotización</h3><p>De investigar 20 procesadores a cotizar 6 equipos completos en Saltillo y por Internet.</p></a>
+      <a class="card" href="#galeria"><span class="num">6 fotos</span><h3>Galería del laboratorio</h3><p>Fotografías tomadas durante las prácticas.</p></a>
+      <a class="card" href="#documentos"><span class="num">PDF</span><h3>Documentos y bibliografía</h3><p>Reportes, tareas y presentaciones para descargar, y las fuentes consultadas.</p></a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= UNIDAD 1 ================= -->
+<section class="view" id="v-unidad-1">
+  <div class="wrap head">
+    <p class="kicker">Unidad 1</p>
+    <h2>Arquitecturas de cómputo</h2>
+    <p class="lead">Cómo se organizan y comunican los componentes de una computadora para procesar información, desde los modelos clásicos hasta el análisis de cada componente.</p>
+    <div class="sublinks"><a href="#u1-modelos">1.1 Modelos</a><a href="#u1-cpu">1.2.1 CPU, ALU, registros</a><a href="#u1-mem">1.2.2 Memoria</a><a href="#u1-es">1.2.3 Entrada/salida</a><a href="#u1-buses">1.2.4 Buses</a><a href="#u1-int">1.2.5 Interrupciones</a><a href="#u1-expo">Exposición</a></div>
+
+    <div class="sec" id="u1-modelos">
+      <h3>1.1 Modelos de arquitecturas de cómputo</h3>
+      <div class="grid">
+        <div class="card"><span class="num">1.1.1</span><h4>Clásicas: Von Neumann</h4><p>Datos e instrucciones comparten una misma memoria (programa almacenado). Componentes: CPU, memoria, entrada, salida y buses.</p>
+          <div class="flow"><span>Búsqueda</span><i>→</i><span>Decodificación</span><i>→</i><span>Ejecución</span></div>
+          <p><b>Ventaja:</b> estructura sencilla y flexible. <b>Desventaja:</b> el acceso compartido crea un cuello de botella.</p></div>
+        <div class="card"><span class="num">1.1.1</span><h4>Clásicas: Harvard</h4><p>Usa memorias y buses <b>independientes</b> para instrucciones y para datos, así que el procesador puede acceder a ambos al mismo tiempo.</p><p><b>Ventaja:</b> mejor rendimiento por accesos simultáneos. <b>Desventaja:</b> diseño y administración más complejos.</p></div>
+        <div class="card"><span class="num">1.1.2</span><h4>Segmentadas (pipeline)</h4><p>Dividen la ejecución en etapas; mientras una instrucción está en una etapa, otra avanza en la siguiente.</p>
+          <div class="flow"><span>Fetch</span><span>Decode</span><span>Execute</span><span>Memory</span><span>Write back</span></div>
+          <p>Más rendimiento, pero diseño más complejo y riesgos (conflictos) entre instrucciones.</p></div>
+        <div class="card"><span class="num">1.1.3</span><h4>Multiprocesamiento</h4><p>Dos o más procesadores trabajan de forma simultánea o paralela. Más capacidad y disponibilidad, a cambio de mayor costo y complejidad; no todas las aplicaciones aprovechan varios procesadores.</p></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u1-cpu">
+      <h3>1.2.1 Arquitecturas: CPU, ALU, registros y buses</h3>
+      <div class="grid">
+        <div class="card"><span class="num">1.2.1.1</span><h4>Unidad Central de Procesamiento</h4><p>“El cerebro de la computadora”: ejecuta instrucciones, realiza operaciones, controla procesos, trabaja con la memoria y se comunica por buses. Sus partes: unidad de control, ALU, registros, reloj y buses internos.</p>
+          <div class="flow"><span>Fetch</span><i>→</i><span>Decode</span><i>→</i><span>Execute</span><i>→</i><span>Store</span></div></div>
+        <div class="card"><span class="num">1.2.1.2</span><h4>ALU</h4><p>Realiza operaciones aritméticas (suma, resta, multiplicación, división) y lógicas (AND, OR, NOT) además de comparaciones, por ejemplo 10 &gt; 5 → verdadero.</p></div>
+        <div class="card"><span class="num">1.2.1.3</span><h4>Registros</h4><p>Pequeñas áreas de muy alta velocidad dentro del procesador. Evitan ir a la RAM por cada dato.</p><ul><li><b>PC:</b> dirección de la siguiente instrucción.</li><li><b>IR:</b> instrucción en proceso.</li><li>Propósito general, estado y direcciones.</li></ul></div>
+        <div class="card"><span class="num">1.2.1.4</span><h4>Buses</h4><p>Para leer un dato de memoria, la CPU usa los tres a la vez:</p><ul><li><b>Direcciones:</b> “quiero el dato de esta dirección”.</li><li><b>Control:</b> “es una lectura”.</li><li><b>Datos:</b> “aquí está el dato”.</li></ul></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u1-mem">
+      <h3>1.2.2 Memoria</h3>
+      <div class="split">
+        <div class="card"><h4>Jerarquía de memoria</h4><p class="note">De más rápida y pequeña (arriba) a más lenta y grande (abajo).</p>
+          <div class="stack3">
+            <div style="background:#172033;width:46%">Registros <span>CPU</span></div>
+            <div style="background:#24324a;width:60%">Caché L1 · L2 · L3 <span>SRAM</span></div>
+            <div style="background:#3c7d7a;width:76%">Memoria principal <span>RAM</span></div>
+            <div style="background:#e07a35;width:100%">Memoria virtual / almacenamiento <span>SSD · HDD</span></div>
+          </div></div>
+        <div class="card"><span class="num">1.2.2.1</span><h4>Manejo de memoria</h4><p>El sistema operativo asigna, controla, protege y libera memoria. Distingue memoria física (real) y lógica (la que ve cada programa); la virtual usa el disco como apoyo.</p><ul><li><b>Paginación:</b> páginas de tamaño fijo en marcos.</li><li><b>Segmentación:</b> partes lógicas (código, datos, pila, heap).</li><li><b>Fragmentación:</b> interna o externa.</li></ul></div>
+        <div class="card"><span class="num">1.2.2.2</span><h4>Memoria principal</h4><p>Formada por la RAM: guarda los programas en ejecución, es mucho más rápida que el almacenamiento y pierde su contenido al apagar el equipo.</p><div class="flow"><span>Almacenamiento</span><i>→</i><span>RAM</span><i>→</i><span>CPU</span></div></div>
+        <div class="card"><span class="num">1.2.2.3</span><h4>Memoria caché</h4><p>Memoria muy rápida junto al procesador. L1 es la más rápida y pequeña, L2 más grande y L3 compartida entre núcleos. Si el dato está, hay <b>acierto</b>; si no, se busca en la RAM.</p></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u1-es">
+      <h3>1.2.3 Manejo de la entrada/salida</h3>
+      <div class="grid">
+        <div class="card"><span class="num">1.2.3.1</span><h4>Módulos de E/S</h4><p>Comunican al procesador con periféricos como teclado, mouse, impresora, disco o monitor.</p></div>
+        <div class="card"><span class="num">1.2.3.2</span><h4>E/S programada</h4><p>La CPU hace todo: inicia la operación, revisa sin parar el estado del dispositivo y mueve cada dato.</p></div>
+        <div class="card"><span class="num">1.2.3.3</span><h4>Por interrupciones</h4><p>La CPU sigue con otras tareas y el dispositivo avisa cuando termina; se evita el sondeo (polling).</p></div>
+        <div class="card"><span class="num">1.2.3.4</span><h4>Acceso directo a memoria (DMA)</h4><p>Un controlador copia bloques entre el dispositivo y la memoria sin ocupar a la CPU. Lo usan discos, tarjetas gráficas y de sonido.</p></div>
+        <div class="card"><span class="num">1.2.3.5</span><h4>Canales y procesadores de E/S</h4><p>Procesadores dedicados que ejecutan sus propias órdenes de E/S y liberan aún más a la CPU.</p></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u1-buses">
+      <h3>1.2.4 Buses</h3>
+      <div class="grid">
+        <div class="card"><span class="num">1.2.4.1</span><h4>Tipos</h4><ul><li><b>Datos:</b> transporta la información; su ancho (8, 16, 32, 64 bits) define cuánto mueve a la vez.</li><li><b>Direcciones:</b> indica dónde leer o escribir; su tamaño fija la memoria direccionable.</li><li><b>Control:</b> señales de lectura, escritura e interrupción.</li></ul></div>
+        <div class="card"><span class="num">1.2.4.2</span><h4>Estructura</h4><p>Conjunto de líneas de datos, direcciones y control. El <b>ancho</b> es la cantidad de bits que viajan al mismo tiempo: un bus de 32 bits transporta 32 bits a la vez.</p></div>
+        <div class="card"><span class="num">1.2.4.3</span><h4>Jerarquías</h4><p>Se organizan por velocidad: bus principal (CPU, caché, memoria), bus de expansión (tarjetas) y bus de E/S (teclado, mouse, USB).</p></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u1-int">
+      <h3>1.2.5 Interrupciones</h3>
+      <div class="card"><p>Señales que avisan al procesador de un evento: la CPU detiene lo que hace, atiende la solicitud y luego continúa.</p>
+        <div class="flow"><span>Hardware</span><span>Software</span><span>Internas (errores, excepciones)</span></div></div>
+    </div>
+
+    <div class="sec" id="u1-expo">
+      <h3>Exposición de la Unidad 1</h3>
+      <div class="deck" data-k="u1" data-t="Unidad 1 · Arquitecturas de cómputo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= UNIDAD 2 ================= -->
+<section class="view" id="v-unidad-2">
+  <div class="wrap head">
+    <p class="kicker">Unidad 2 · exposición de mi equipo</p>
+    <h2>Estructura y funcionamiento de la CPU</h2>
+    <div class="team"><span>Dair Antonio Riojas Quintero</span><span>Omar Said Hernández Buendía</span><span>Alfredo Colunga Sánchez</span><span>Jorge Osvaldo Romo Coronel</span></div>
+    <div class="sublinks"><a href="#u2-org">2.1 Organización</a><a href="#u2-reg">2.2 Registros</a><a href="#u2-ciclo">2.3 Ciclo de instrucción</a><a href="#u2-casos">2.4 Casos de estudio</a><a href="#u2-expo">Exposición</a></div>
+
+    <div class="sec" id="u2-org">
+      <h3>2.1 Organización del procesador</h3>
+      <div class="split">
+        <div class="card"><p>El procesador combina una <b>unidad de control</b> que dirige la ejecución, una <b>ALU</b> que calcula, un banco de <b>registros</b> para los datos inmediatos y los <b>buses internos</b> que los comunican, todo sincronizado por el reloj.</p>
+          <div class="flow"><span>Memoria</span><i>⇄</i><span>Unidad de control</span><i>⇄</i><span>Registros</span><i>⇄</i><span>ALU</span></div></div>
+        <div class="card" id="u1-pipe"><h4>Organización de la segmentación</h4><p class="note">Cinco instrucciones en un pipeline de 5 etapas: en el ciclo 5 todas las etapas trabajan a la vez.</p>
+          <div class="pipe" id="pipe"></div></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u2-reg">
+      <h3>2.2 Estructura de registros</h3>
+      <p>Los registros son unidades de almacenamiento de alta velocidad dentro de la CPU; guardan datos, instrucciones y direcciones para reducir accesos a la RAM.</p>
+      <div class="grid">
+        <div class="card"><span class="num">2.2.1</span><h4>Visibles para el usuario</h4><p>El programador los usa directamente con instrucciones: datos temporales, direcciones y resultados.</p></div>
+        <div class="card"><span class="num">2.2.2</span><h4>De control y estado</h4><ul><li><b>PC:</b> dirección de la siguiente instrucción.</li><li><b>IR:</b> instrucción actual.</li><li><b>MAR / MBR:</b> dirección y dato de memoria.</li><li><b>Banderas:</b> cero, signo, acarreo, desbordamiento.</li></ul></div>
+        <div class="card"><span class="num">2.2.3</span><h4>Ejemplos reales</h4><p><b>x86:</b> EAX, EBX, ECX, EDX (propósito general), EIP (contador de programa) y EFLAGS.</p><p><b>ARM:</b> R0–R15, con R15 como PC, y el registro de estado CPSR.</p></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u2-ciclo">
+      <h3>2.3 El ciclo de instrucción</h3>
+      <div class="grid">
+        <div class="card"><span class="num">2.3.1</span><h4>Ciclo básico</h4><div class="flow"><span>Búsqueda</span><i>→</i><span>Decodificación</span><i>→</i><span>Ejecución</span></div><p>El PC apunta a la instrucción, se copia al IR, la unidad de control la interpreta y la ALU la ejecuta.</p></div>
+        <div class="card"><span class="num">2.3.2</span><h4>Segmentación de instrucciones</h4><p>Cinco etapas (IF, ID, EX, MEM, WB) que se solapan, como una línea de producción. Los riesgos de datos, de control y estructurales pueden detenerla.</p></div>
+        <div class="card"><span class="num">2.3.3</span><h4>Conjunto de instrucciones (ISA)</h4><p>Lo que el procesador sabe hacer: transferencia de datos, aritméticas, lógicas y de control de flujo. Filosofías CISC (x86) y RISC (ARM).</p></div>
+      </div>
+      <div class="sec tbl scroll">
+        <table class="stack"><thead><tr><th>2.3.4 Modo de direccionamiento</th><th>Dónde está el operando</th><th>Ejemplo</th></tr></thead><tbody>
+          <tr><td>Inmediato</td><td>En la misma instrucción</td><td>MOV AX, 5</td></tr>
+          <tr><td>Directo</td><td>En la dirección de memoria indicada</td><td>MOV AX, [1000h]</td></tr>
+          <tr><td>Indirecto</td><td>La memoria guarda la dirección del operando</td><td>[[1000h]]</td></tr>
+          <tr><td>Registro</td><td>En un registro</td><td>MOV AX, BX</td></tr>
+          <tr><td>Indirecto por registro</td><td>El registro guarda la dirección</td><td>MOV AX, [BX]</td></tr>
+          <tr><td>Indexado</td><td>Dirección base + índice</td><td>MOV AX, [SI+10]</td></tr>
+          <tr><td>Base + desplazamiento</td><td>Registro base + constante</td><td>MOV AX, [BP+4]</td></tr>
+          <tr><td>Relativo</td><td>Relativo al contador de programa</td><td>JMP etiqueta</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <div class="sec" id="u2-casos">
+      <h3>2.4 Casos de estudio de CPU reales</h3>
+      <div class="grid">
+        <div class="card"><h4>Intel 8086</h4><p>Origen de la arquitectura x86 (1978): 16 bits, registros AX–DX y segmentación de memoria.</p></div>
+        <div class="card"><h4>Intel Core</h4><p>x86 de alto rendimiento con núcleos de rendimiento y eficiencia, Hyper-Threading y caché de varios niveles.</p></div>
+        <div class="card"><h4>AMD Ryzen</h4><p>Arquitectura Zen con diseño de chiplets, SMT y gran caché L3 (3D V-Cache).</p></div>
+        <div class="card"><h4>ARM Cortex</h4><p>Filosofía RISC y bajo consumo: domina celulares y sistemas embebidos.</p></div>
+        <div class="card"><h4>Apple M1</h4><p>SoC ARM con CPU, GPU y memoria unificada en un mismo paquete.</p></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u2-expo">
+      <h3>Exposición de la Unidad 2</h3>
+      <div class="deck" data-k="u2" data-t="Unidad 2 · Estructura de la CPU"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= UNIDAD 3 ================= -->
+<section class="view" id="v-unidad-3">
+  <div class="wrap head">
+    <p class="kicker">Unidad 3</p>
+    <h2>Selección de componentes para ensamble de equipos</h2>
+    <div class="team"><span>Ana Sofía García López</span><span>José Eleazar Hussain Rodríguez Rodríguez</span><span>Sebastián Alejandro Hernández Salazar</span><span>Sergio Leonardo Rodríguez Herrera</span></div>
+    <div class="sublinks"><a href="#u3-chip">3.1 Chipset</a><a href="#u3-apps">3.2 Aplicaciones</a><a href="#u3-amb">3.3 Ambientes de servicio</a><a href="#u3-expo">Exposición</a></div>
+
+    <div class="sec" id="u3-chip">
+      <h3>3.1 Chipset</h3>
+      <p>El centro de comunicaciones de la placa base: organiza, prioriza y encamina los datos entre el procesador, la RAM, el almacenamiento, el video y los puertos. Si la CPU es el cerebro, el chipset es el sistema nervioso; además define qué procesadores y memorias son compatibles.</p>
+      <div class="split" style="margin-bottom:16px">
+        <div class="card"><h4>Esquema tradicional</h4><p><b>Puente norte:</b> CPU con RAM y video (alta velocidad).<br><b>Puente sur:</b> discos, USB, audio, red y BIOS.</p><p class="note">Así son las placas LGA 775 de la práctica 1.</p></div>
+        <div class="card"><h4>Esquema moderno</h4><p>El puente norte se integra en la CPU (controlador DDR y líneas PCIe). El puente sur evoluciona al <b>PCH</b> (Intel) o <b>FCH</b> (AMD), unido por enlaces DMI o UMI.</p></div>
+      </div>
+      <div class="grid">
+        <div class="card"><span class="num">3.1.1</span><h4>CPU</h4><p>Usa el chipset como puente. Conceptos clave: núcleos e hilos (SMT), frecuencia en GHz e IPC; caché L1, L2 y L3.</p></div>
+        <div class="card"><span class="num">3.1.2</span><h4>Controlador de bus</h4><p>Organiza el tráfico: arbitraje, control de acceso, sincronización y traducción entre buses. Maestro y esclavo; arbitraje en cadena, por consulta o por petición independiente. Ancho de banda = ancho × frecuencia.</p></div>
+        <div class="card"><span class="num">3.1.3</span><h4>Puertos de E/S</h4><p>Serie (USB, Ethernet) o paralelos; mapeados en memoria (MMIO) o en un espacio de E/S aparte.</p></div>
+        <div class="card"><span class="num">3.1.4</span><h4>Controlador de interrupciones</h4><p>Recibe las peticiones de los módulos de E/S, aplica prioridades y avisa al procesador por una sola línea.</p></div>
+        <div class="card"><span class="num">3.1.5</span><h4>Controlador DMA</h4><p>El periférico pide el bus, la CPU lo cede, el DMA copia a la RAM y al final avisa con una IRQ.</p></div>
+        <div class="card"><span class="num">3.1.6</span><h4>Temporización</h4><p>Genera el reloj: onda cuadrada que marca el ritmo. A 1 GHz cada ciclo dura 1 ns; más frecuencia implica más calor y consumo.</p></div>
+        <div class="card"><span class="num">3.1.7</span><h4>Circuitos de control</h4><p>Registros de estado, control y datos y lógica de decodificación; operan por E/S programada, interrupciones o DMA.</p></div>
+        <div class="card"><span class="num">3.1.8</span><h4>Controles de video</h4><p>Convierten datos digitales en imagen para la pantalla; usan VRAM y una GPU especializada.</p></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u3-apps">
+      <h3>3.2 Aplicaciones</h3>
+      <p>Cómo se elige y optimiza el hardware para cada tarea: potencia, ancho de banda y capacidad de E/S según el software.</p>
+      <div class="grid">
+        <div class="card"><span class="num">3.2.1</span><h4>Entrada / salida</h4><p>Entrada (teclado, mouse, micrófono, cámara), salida (monitor, bocinas, impresora) y mixtos (pantalla táctil, disco externo), conectados por USB, HDMI, Ethernet o Bluetooth.</p></div>
+        <div class="card"><span class="num">3.2.2</span><h4>Almacenamiento</h4><p>Jerarquía de registros, caché SRAM, RAM DRAM y almacenamiento masivo (SSD NVMe/SATA, HDD). Se apoya en el principio de localidad y en DMA.</p></div>
+        <div class="card"><span class="num">3.2.3</span><h4>Fuentes de alimentación</h4><p><b>Lineales:</b> transformador, rectificador, filtro y regulador; baratas pero menos eficientes. <b>Conmutadas:</b> más pequeñas, eficientes y frías; las que usan las PC.</p></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u3-amb">
+      <h3>3.3 Ambientes de servicio</h3>
+      <p>Infraestructuras de hardware, servidores, redes y almacenamiento que deben estar disponibles, crecer con los usuarios y proteger la información.</p>
+      <div class="grid">
+        <div class="card"><span class="num">3.3.1</span><h4>Negocios</h4><p>PCs y laptops, servidores, red, punto de venta (TPV), ERP y respaldos. Ejemplo: al vender en caja, el servidor descuenta el inventario automáticamente.</p></div>
+        <div class="card"><span class="num">3.3.2</span><h4>Industria</h4><p>Diseñadores sin fábrica (Nvidia, AMD, Apple, Qualcomm), fundidoras (TSMC, Samsung, Intel) y EDA. Arquitecturas x86, ARM y RISC-V; aceleradores de IA.</p></div>
+        <div class="card"><span class="num">3.3.3</span><h4>Comercio electrónico</h4><p>Compraventa por Internet: tiendas en línea, plataformas colaborativas y comercio social, con centros de datos para millones de visitas.</p></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u3-expo">
+      <h3>Exposición de la Unidad 3</h3>
+      <div class="deck" data-k="u3" data-t="Unidad 3 · Selección de componentes"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= UNIDAD 4 ================= -->
+<section class="view" id="v-unidad-4">
+  <div class="wrap head">
+    <p class="kicker">Unidad 4</p>
+    <h2>Procesamiento paralelo</h2>
+    <div class="team"><span>Dannie Piña</span><span>Valery Alvarado</span><span>Saul Loza (Sasha)</span><span>Alma</span></div>
+    <div class="sublinks"><a href="#u4-bas">4.1 Aspectos básicos</a><a href="#u4-calc">Calculadora de Amdahl</a><a href="#u4-tipos">4.2 Tipos (Flynn)</a><a href="#u4-mem">4.3 Multiprocesadores</a><a href="#u4-multi">4.4–4.5 Multicomputadoras</a><a href="#u4-expo">Presentación</a></div>
+
+    <div class="sec" id="u4-bas">
+      <h3>4.1 Aspectos básicos de la computación paralela</h3>
+      <p>Usar varios recursos de cómputo a la vez: el problema se divide en tareas, cada una corre en un procesador y al final se combinan los resultados. Desde ~2005 subir los GHz chocó con el límite térmico, así que la industria pasó a poner más núcleos.</p>
+      <div class="grid">
+        <div class="card"><h4>Métricas</h4><p>Aceleración S = T₁ / Tₚ · Eficiencia E = S / p · Costo C = p · Tₚ.</p><p class="note">Ej.: 120 s en 1 núcleo y 20 s en 8 → S = 6, E = 75 %.</p></div>
+        <div class="card"><h4>Ley de Gustafson</h4><p>S = p − α(p − 1). Si el problema crece con los procesadores, la aceleración también: con α = 5 % y 100 procesadores, S ≈ 95.</p></div>
+        <div class="card"><h4>Niveles de paralelismo</h4><p>De bit, de instrucción (pipeline, superescalar), de datos (SIMD, GPU) y de tareas o hilos (multinúcleo, clústeres).</p></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u4-calc">
+      <h3>Ley de Amdahl en vivo</h3>
+      <div class="card calc">
+        <div>
+          <p>S(p) = 1 / [(1 − f) + f / p]. La parte secuencial limita todo: aunque haya infinitos procesadores, el máximo es 1 / (1 − f).</p>
+          <label for="af">Fracción paralela f: <span id="afv">90 %</span></label>
+          <input type="range" id="af" min="10" max="99" value="90">
+          <label for="ap">Procesadores p: <span id="apv">16</span></label>
+          <input type="range" id="ap" min="0" max="10" value="4">
+        </div>
+        <div>
+          <div class="note">Aceleración</div>
+          <div class="big" id="as">6.40×</div>
+          <p style="margin-top:12px">Eficiencia <b id="ae">40 %</b> · Máximo posible <b id="am">10×</b></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec" id="u4-tipos">
+      <h3>4.2 Tipos de computación paralela</h3>
+      <p>Multinúcleo, multiprocesador simétrico (SMP), clústeres, procesamiento masivamente paralelo (MPP), grid y nube, y aceleradores (GPU, TPU, FPGA).</p>
+      <div class="tbl scroll"><table class="stack"><thead><tr><th>Taxonomía de Flynn (1966)</th><th>Instrucciones · datos</th><th>Ejemplos</th></tr></thead><tbody>
+        <tr><td><b>SISD</b></td><td>1 · 1</td><td>Von Neumann clásico, Intel 8086</td></tr>
+        <tr><td><b>SIMD</b></td><td>1 · muchos</td><td>Procesadores vectoriales, SSE/AVX, GPU</td></tr>
+        <tr><td><b>MISD</b></td><td>muchas · 1</td><td>Sistemas redundantes tolerantes a fallos</td></tr>
+        <tr><td><b>MIMD</b></td><td>muchas · muchos</td><td>Multinúcleos y clústeres (la más común)</td></tr>
+      </tbody></table></div>
+      <p class="note" style="margin-top:10px">MIMD se divide en multiprocesadores (memoria compartida: UMA, NUMA, COMA) y multicomputadoras (memoria distribuida: MPP, clústeres). Modelos de programación SPMD y MPMD.</p>
+    </div>
+
+    <div class="sec" id="u4-mem">
+      <h3>4.3 Multiprocesadores y redes dinámicas</h3>
+      <div class="grid">
+        <div class="card"><h4>Memoria compartida</h4><p>Varios procesadores con un solo espacio de direcciones y un solo sistema operativo; se programan con hilos (Pthreads, OpenMP).</p></div>
+        <div class="card"><h4>Coherencia de caché</h4><p>Si P1 escribe X = 7 y P2 conserva X = 5, los datos quedan inconsistentes. Se resuelve por <b>snooping</b> (pocos núcleos) o <b>directorio</b> (cientos), con el protocolo <b>MESI</b>: Modificado, Exclusivo, Compartido, Inválido.</p></div>
+        <div class="card"><h4>Sincronización</h4><p>Condiciones de carrera (contador++ en dos hilos); se controlan con candados, instrucciones atómicas, semáforos y barreras.</p></div>
+      </div>
+      <div class="tbl scroll" style="margin-top:16px"><table class="stack"><thead><tr><th>Red dinámica</th><th>Costo</th><th>Latencia</th><th>Bloqueo</th></tr></thead><tbody>
+        <tr><td>Bus compartido</td><td>O(N)</td><td>Constante</td><td>Sí, una transferencia a la vez</td></tr>
+        <tr><td>Multietapa (Omega)</td><td>O(N log N)</td><td>O(log N)</td><td>Parcial</td></tr>
+        <tr><td>Crossbar</td><td>O(N²)</td><td>Constante</td><td>No</td></tr>
+      </tbody></table></div>
+    </div>
+
+    <div class="sec" id="u4-multi">
+      <h3>4.4 – 4.5 Multicomputadoras, redes estáticas y casos de estudio</h3>
+      <div class="grid">
+        <div class="card"><h4>Multicomputadoras</h4><p>Cada nodo tiene su propia memoria y se comunican por paso de mensajes (MPI). Escalan a miles de nodos: clústeres y supercomputadoras.</p></div>
+        <div class="card"><h4>Redes estáticas</h4><p>Enlaces fijos entre nodos: anillo, malla, toro, árbol e hipercubo (un hipercubo de 4 dimensiones tiene 16 nodos y 32 enlaces).</p></div>
+        <div class="card"><h4>Casos de estudio</h4><p>Las supercomputadoras más grandes combinan miles de nodos con CPU y GPU unidos por redes de alta velocidad.</p></div>
+      </div>
+    </div>
+
+    <div class="sec" id="u4-expo">
+      <h3>Presentación interactiva del equipo</h3>
+      <p>El equipo de la Unidad 4 hizo su exposición como página web, con gráficas, actividades y un quiz final.</p>
+      <p><a class="btn" href="u4.html" target="_blank" rel="noopener">Abrir la presentación completa</a></p>
+      <iframe class="frame" src="u4.html" title="Presentación Procesamiento Paralelo, Unidad 4" loading="lazy"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PRÁCTICAS ================= -->
+<section class="view" id="v-practicas">
+  <div class="wrap head">
+    <p class="kicker">Laboratorio</p>
+    <h2>Prácticas de laboratorio</h2>
+    <p class="lead">Identificación de placas madre y procesadores reales: qué se puede leer en cada pieza y cómo saber si son compatibles entre sí.</p>
+    <div class="sublinks"><a href="#p1">Práctica 1 · Placas madre</a><a href="#p2">Práctica 2 · Procesadores</a><a href="#p-compat">Compatibilidad</a></div>
+
+    <div class="sec" id="p1">
+      <h3>Práctica 1 · Placas madre</h3>
+      <p><b>Objetivo:</b> identificar socket, chipset, memoria, ranuras, almacenamiento y conectividad para distinguir una placa doméstica de una de servidor.</p>
+      <div class="grid">
+        <div class="card"><img class="ph zoom" src="img/fotos/1.jpg" alt="Placa ECS / HP RC410-M" data-cap="Placa 1 · ECS / HP RC410-M"><h4 style="margin-top:12px">Placa 1 · ECS / HP RC410-M</h4><ul><li>Micro-ATX, socket LGA 775</li><li>Chipset ATI Radeon Xpress 200 + IXP450</li><li>2 DIMM DDR2, máximo 2 GB</li><li>1 PCIe x16 y 3 PCI · 4 SATA I</li><li>Video integrado con salida VGA</li></ul></div>
+        <div class="card"><img class="ph zoom" src="img/fotos/2.jpg" alt="Placa MSI LX-3140" data-cap="Placa 2 · KINIX / MSI LX-3140"><h4 style="margin-top:12px">Placa 2 · KINIX / MSI LX-3140</h4><ul><li>Socket LGA 775, disipadores en los puentes</li><li>2 DIMM DDR2 en doble canal</li><li>1 PCIe x16, 1 PCIe x1, 2 PCI</li><li>4 SATA II (3 Gb/s)</li><li>ATX 24 pines + 4 pines de 12 V</li></ul></div>
+        <div class="card"><img class="ph zoom" src="img/fotos/4.jpg" alt="Placa de servidor HP doble socket" data-cap="Placa 3 · Servidor HP de doble socket"><h4 style="margin-top:12px">Placa 3 · Servidor HP de doble socket</h4><ul><li>2 sockets 604 (mPGA604), multiprocesamiento</li><li>Ranuras de memoria DDR2 con ECC</li><li>PCI Express y PCI-X</li><li>VRM dedicados por procesador</li><li>Serie, paralelo, PS/2, USB y doble Ethernet</li></ul></div>
+      </div>
+      <div class="tbl scroll sec"><table class="stack"><thead><tr><th>Característica</th><th>ECS / HP RC410-M</th><th>MSI LX-3140</th><th>HP doble socket</th></tr></thead><tbody>
+        <tr><td>Tipo</td><td>Escritorio / oficina</td><td>Escritorio</td><td>Servidor / estación</td></tr>
+        <tr><td>Socket</td><td>1 × LGA 775</td><td>1 × LGA 775</td><td>2 × Socket 604</td></tr>
+        <tr><td>Memoria</td><td>DDR2, 2 ranuras</td><td>DDR2, doble canal</td><td>DDR2 ECC</td></tr>
+        <tr><td>Expansión</td><td>1 PCIe x16, 3 PCI</td><td>1 PCIe x16, 1 x1, 2 PCI</td><td>PCIe, PCI-X, PCI</td></tr>
+        <tr><td>SATA</td><td>4 × SATA I</td><td>4 × SATA II</td><td>No identificado</td></tr>
+        <tr><td>Video integrado</td><td>Sí (VGA)</td><td>No</td><td>No</td></tr>
+      </tbody></table></div>
+      <p class="sec"><b>Conclusión:</b> las dos placas de escritorio comparten LGA 775 y DDR2, pero la MSI rinde más por el doble canal y SATA II, y la ECS tiene video integrado. La de HP es de otra categoría: dos procesadores, memoria con corrección de errores y doble red para trabajar sin parar.</p>
+    </div>
+
+    <div class="sec" id="p2">
+      <h3>Práctica 2 · Procesadores (CPU)</h3>
+      <p><b>Objetivo:</b> leer los datos grabados en la tapa de cada procesador (modelo, S-Spec y la línea frecuencia/caché/bus) y obtener sus especificaciones.</p>
+      <div class="grid">
+        <div class="card"><img class="cpu zoom" src="img/cpu_e2140.jpg" alt="Intel Pentium Dual-Core E2140" data-cap="Intel Pentium Dual-Core E2140"><h4>Pentium Dual-Core E2140</h4><p class="note">SLA93 · 1.60GHZ/1M/800</p><p>2 núcleos a 1.60 GHz, 1 MB L2, FSB 800 MHz, 65 nm, LGA 775, 65 W. Arquitectura Core (2007).</p></div>
+        <div class="card"><img class="cpu zoom" src="img/cpu_celeron.jpg" alt="Intel Celeron D 352" data-cap="Intel Celeron D 352"><h4>Celeron D 352</h4><p class="note">SL9KM · 3.20GHZ/512/533</p><p>1 núcleo a 3.20 GHz, 512 KB L2, FSB 533 MHz, 65 nm, LGA 775, 86 W. NetBurst (2006).</p></div>
+        <div class="card"><img class="cpu zoom" src="img/cpu_xeon.jpg" alt="Intel Xeon Socket 604" data-cap="Intel Xeon para Socket 604"><h4>Xeon (Socket 604)</h4><p class="note">Nocona / Irwindale · modelo ilegible</p><p>1 núcleo con Hyper-Threading, 2.8–3.8 GHz, 1–2 MB L2, FSB 800 MHz, 90 nm, ~103–110 W. Para dos procesadores.</p></div>
+      </div>
+      <div class="tbl scroll sec"><table class="stack"><thead><tr><th>Característica</th><th>Pentium E2140</th><th>Celeron D 352</th><th>Xeon (604)</th></tr></thead><tbody>
+        <tr><td>Uso</td><td>Escritorio</td><td>Escritorio básico</td><td>Servidor</td></tr>
+        <tr><td>Frecuencia</td><td>1.60 GHz</td><td>3.20 GHz</td><td>2.8 – 3.8 GHz</td></tr>
+        <tr><td>Núcleos / hilos</td><td>2 / 2</td><td>1 / 1</td><td>1 / 2</td></tr>
+        <tr><td>Caché L2</td><td>1 MB</td><td>512 KB</td><td>1 – 2 MB</td></tr>
+        <tr><td>FSB</td><td>800 MHz</td><td>533 MHz</td><td>800 MHz</td></tr>
+        <tr><td>Socket</td><td>LGA 775</td><td>LGA 775</td><td>mPGA604</td></tr>
+        <tr><td>TDP</td><td>65 W</td><td>86 W</td><td>~103–110 W</td></tr>
+      </tbody></table></div>
+      <p class="sec"><b>Conclusión:</b> más GHz no siempre es más rendimiento. El E2140 a 1.60 GHz, con dos núcleos y arquitectura Core, supera al Celeron D de 3.20 GHz y consume menos.</p>
+    </div>
+
+    <div class="sec" id="p-compat">
+      <h3>¿Qué procesador va en qué placa?</h3>
+      <div class="tbl"><table class="stack"><thead><tr><th>Placa madre</th><th>Socket</th><th>Procesador compatible</th></tr></thead><tbody>
+        <tr><td>ECS / HP RC410-M (verde)</td><td>LGA 775</td><td>Celeron D 352</td></tr>
+        <tr><td>MSI LX-3140 (roja)</td><td>LGA 775</td><td>Celeron D 352 y Pentium E2140</td></tr>
+        <tr><td>HP de servidor</td><td>2 × Socket 604</td><td>Xeon (hasta dos)</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TAREAS ================= -->
+<section class="view" id="v-tareas">
+  <div class="wrap head">
+    <p class="kicker">Tareas de investigación</p>
+    <h2>Del procesador a la cotización</h2>
+    <p class="lead">Cinco tareas encadenadas: se investigan procesadores y memorias, se definen las gamas, se diseñan seis equipos y se cotizan en Saltillo y por Internet.</p>
+    <div class="sublinks"><a href="#t-cpu">Procesadores</a><a href="#t-ram">Memorias RAM</a><a href="#t-gamas">Gamas</a><a href="#t-diseno">Diseño de equipos</a><a href="#t-cot">Cotización</a></div>
+
+    <div class="sec" id="t-cpu">
+      <h3>Investigación de procesadores</h3>
+      <p>20 procesadores de escritorio actuales, 10 Intel y 10 AMD. Precios aproximados en pesos mexicanos. Las filas marcadas son los elegidos para el diseño de equipos.</p>
+      <div class="tbl scroll"><table><thead><tr><th>Modelo</th><th>Núcleos / hilos</th><th class="r">Frec. máx.</th><th class="r">Caché L3</th><th class="r">TDP</th><th>Socket</th><th class="r">Precio MXN</th></tr></thead><tbody id="cpuT"></tbody></table></div>
+      <p class="note" style="margin-top:8px">Intel destaca por dar muchos núcleos a buen precio; AMD, en juegos gracias a 3D V-Cache y a la plataforma AM5.</p>
+    </div>
+
+    <div class="sec" id="t-ram">
+      <h3>Memorias RAM a partir de DDR3</h3>
+      <p>Cada generación sube velocidad y capacidad y baja el voltaje, pero no son intercambiables: la muesca cambia de lugar.</p>
+      <div class="tbl scroll"><table class="stack"><thead><tr><th>Característica</th><th>DDR3</th><th>DDR4</th><th>DDR5</th></tr></thead><tbody>
+        <tr><td>Lanzamiento</td><td>2007</td><td>2014</td><td>2020</td></tr>
+        <tr><td>Velocidad</td><td>800–2133 MT/s</td><td>1600–3200 MT/s</td><td>4800–6400+ MT/s</td></tr>
+        <tr><td>Voltaje</td><td>1.5 V (1.35 V DDR3L)</td><td>1.2 V</td><td>1.1 V</td></tr>
+        <tr><td>Pines DIMM / SO-DIMM</td><td>240 / 204</td><td>288 / 260</td><td>288 / 262</td></tr>
+        <tr><td>Capacidad común por módulo</td><td>Hasta 8 GB</td><td>Hasta 32 GB</td><td>Hasta 64 GB</td></tr>
+        <tr><td>Ancho de banda por módulo</td><td>~17 GB/s</td><td>~25.6 GB/s</td><td>~51 GB/s</td></tr>
+        <tr><td>Situación</td><td>Obsoleta</td><td>Económica, vigente</td><td>Estándar actual</td></tr>
+      </tbody></table></div>
+      <p class="note" style="margin-top:8px">También: LPDDR (soldada, para celulares y laptops), formatos DIMM, SO-DIMM, RDIMM/ECC y CAMM2, y memoria gráfica GDDR.</p>
+    </div>
+
+    <div class="sec" id="t-gamas">
+      <h3>Gamas de equipos de cómputo</h3>
+      <div class="tbl scroll"><table class="stack"><thead><tr><th>Característica</th><th>Gama baja</th><th>Gama media</th><th>Gama alta</th></tr></thead><tbody>
+        <tr><td>Procesador</td><td>Core i3-14100 / Ryzen 5 8500G</td><td>Core Ultra 5 250K Plus / Ryzen 5 9600X</td><td>Core Ultra 9 285K / Ryzen 9 9950X3D</td></tr>
+        <tr><td>RAM</td><td>8–16 GB</td><td>16–32 GB DDR5</td><td>32–64 GB DDR5</td></tr>
+        <tr><td>Almacenamiento</td><td>SSD 256–512 GB</td><td>SSD NVMe 1 TB</td><td>SSD NVMe 2 TB o más</td></tr>
+        <tr><td>Gráficos</td><td>Integrados</td><td>Dedicada de gama media</td><td>Dedicada de gama alta</td></tr>
+        <tr><td>Fuente</td><td>400–500 W</td><td>650 W</td><td>850–1000 W</td></tr>
+        <tr><td>Uso</td><td>Oficina y escuela</td><td>Gaming y multitarea</td><td>Creación de contenido</td></tr>
+        <tr><td>Precio aprox.</td><td>$8,000–$14,000</td><td>$18,000–$30,000</td><td>Desde $40,000</td></tr>
+      </tbody></table></div>
+      <p style="margin-top:14px">El equipo 6 expuso este mismo tema junto con los tipos de memoria (SRAM, DRAM, DDR3, DDR4 y DDR5):</p>
+      <div class="team"><span>Nancy Juárez López</span><span>Joseph Antuan Contreras Espitia</span><span>Ángel Josué García Cuello</span><span>Víctor Baena Rodríguez</span></div>
+      <div class="deck" data-k="eq6" data-t="Equipo 6 · Memorias y gamas"></div>
+    </div>
+
+    <div class="sec" id="t-diseno">
+      <h3>Diseño de equipos de cómputo</h3>
+      <p>Seis equipos, dos por gama (uno Intel y uno AMD), con componentes compatibles en socket, tipo de memoria y potencia de la fuente.</p>
+      <div class="grid" id="eqG"></div>
+    </div>
+
+    <div class="sec" id="t-cot">
+      <h3>Cotización: Saltillo contra Internet</h3>
+      <p>Comprar por Internet conviene en los seis equipos, incluso pagando envío; el ahorro crece con el precio del equipo (de ~$1,000 en gama baja a más de $8,000 en gama alta).</p>
+      <div class="legend"><span><i style="background:var(--orange)"></i>Tienda local en Saltillo + transporte</span><span><i style="background:var(--teal)"></i>Cyberpuerta.mx + envío</span></div>
+      <div class="card bars" id="bars"></div>
+      <div class="tbl scroll sec"><table><thead><tr><th>Equipo</th><th>Gama</th><th class="r">Local</th><th class="r">Internet</th><th class="r">Ahorro</th></tr></thead><tbody id="cotT"></tbody></table></div>
+      <p class="note" style="margin-top:8px">Precios de Internet de Cyberpuerta (noviembre 2026). Los locales son una estimación de +12 %, porque las tiendas de Saltillo no publican precios; transporte local de $150 (camión + Uber/DiDi) y envío de $134 por paquete.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GALERÍA ================= -->
+<section class="view" id="v-galeria">
+  <div class="wrap head">
+    <p class="kicker">Práctica 1</p>
+    <h2>Galería del laboratorio</h2>
+    <p class="lead">Fotografías tomadas durante las prácticas. Toca una foto para verla en grande.</p>
+    <div class="grid" id="galG"></div>
+  </div>
+</section>
+
+<!-- ================= DOCUMENTOS ================= -->
+<section class="view" id="v-documentos">
+  <div class="wrap head">
+    <p class="kicker">Descargas</p>
+    <h2>Documentos y bibliografía</h2>
+    <p class="lead">Los trabajos originales en PDF, tal como se entregaron.</p>
+    <p class="note" id="docnote" hidden>Esta vista previa no incluye los PDF; las descargas funcionan en la versión publicada en GitHub Pages.</p>
+    <div class="grid two">
+      <div class="card"><h3>Prácticas</h3><ul class="dl">
+        <li><a href="docs/practica-1-placas-madre.pdf" target="_blank" rel="noopener">Reporte de práctica 1 · Placas madre</a></li>
+        <li><a href="docs/practica-2-procesadores.pdf" target="_blank" rel="noopener">Reporte de práctica 2 · Procesadores (CPU)</a></li></ul></div>
+      <div class="card"><h3>Tareas</h3><ul class="dl">
+        <li><a href="docs/tarea-procesadores.pdf" target="_blank" rel="noopener">Investigación de procesadores</a></li>
+        <li><a href="docs/tarea-memorias-ram.pdf" target="_blank" rel="noopener">Memorias RAM a partir de DDR3</a></li>
+        <li><a href="docs/tarea-gamas.pdf" target="_blank" rel="noopener">Gamas de equipos de cómputo</a></li>
+        <li><a href="docs/tarea-diseno-equipos.pdf" target="_blank" rel="noopener">Diseño de equipos de cómputo</a></li>
+        <li><a href="docs/tarea-cotizacion.pdf" target="_blank" rel="noopener">Cotización de equipos de cómputo</a></li></ul></div>
+      <div class="card"><h3>Presentaciones de las unidades</h3><ul class="dl">
+        <li><a href="docs/expo-unidad-1.pdf" target="_blank" rel="noopener">Unidad 1 · Arquitecturas de cómputo</a></li>
+        <li><a href="docs/expo-unidad-2.pdf" target="_blank" rel="noopener">Unidad 2 · Estructura y funcionamiento de la CPU</a></li>
+        <li><a href="docs/expo-unidad-3.pdf" target="_blank" rel="noopener">Unidad 3 · Selección de componentes</a></li>
+        <li><a href="u4.html" target="_blank" rel="noopener">Unidad 4 · Procesamiento paralelo (página interactiva)</a></li>
+        <li><a href="docs/expo-equipo-6-memorias-gamas.pdf" target="_blank" rel="noopener">Equipo 6 · Memorias y gamas</a></li></ul></div>
+      <div class="card"><h3>Bibliografía</h3><ul>
+        <li>Intel. Especificaciones de procesadores Intel Core y Core Ultra. intel.com</li>
+        <li>AMD. Especificaciones de procesadores Ryzen y tarjetas Radeon. amd.com</li>
+        <li>NVIDIA. Tarjetas gráficas GeForce RTX serie 50. nvidia.com</li>
+        <li>JEDEC. Estándares de memoria DDR3, DDR4, DDR5 y LPDDR. jedec.org</li>
+        <li>Crucial y Kingston. Guías de tipos y compatibilidad de memoria RAM.</li>
+        <li>Cyberpuerta.mx. Catálogo y precios de componentes, noviembre de 2026.</li>
+        <li>Sección Amarilla. Directorio de tiendas de cómputo en Saltillo.</li>
+        <li>Exposiciones de los equipos del grupo 6AC, unidades 1 a 4.</li></ul></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap"><span>Arquitectura de Computadoras · Instituto Tecnológico de Saltillo · 2026</span><span>Alfredo Colunga Sánchez · Grupo 6AC</span></div></footer>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Visor de imágenes">
+  <div class="cap" id="lbc"></div>
+  <div class="ctl x"><button id="lbx" aria-label="Cerrar">✕</button></div>
+  <img id="lbi" alt="">
+  <div class="ctl"><button id="lbp" class="ghost" aria-label="Anterior">‹</button><span id="lbn"></span><button id="lbs" class="ghost" aria-label="Siguiente">›</button></div>
+</div>
+
+<script>
+{
+const DECKS={u1:49,u2:17,u3:27,eq6:15};
+const pad=n=>String(n).padStart(2,'0');
+const money=n=>'$'+n.toLocaleString('es-MX');
+
+/* rutas */
+const views=['inicio','unidad-1','unidad-2','unidad-3','unidad-4','practicas','tareas','galeria','documentos'];
+const owner={};
+document.querySelectorAll('.view').forEach(v=>v.querySelectorAll('[id]').forEach(e=>owner[e.id]=v.id.slice(2)));
+function route(){
+  const h=decodeURIComponent(location.hash.slice(1))||'inicio';
+  const v=views.includes(h)?h:(owner[h]||'inicio');
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  document.querySelectorAll('#nav a').forEach(a=>{const on=a.getAttribute('href')==='#'+v;a.classList.toggle('on',on);if(on)a.scrollIntoView({block:'nearest',inline:'nearest'})});
+  if(views.includes(h))window.scrollTo(0,0);else document.getElementById(h)?.scrollIntoView();
+}
+addEventListener('hashchange',route);
+
+/* visor */
+const lb=document.getElementById('lb'),lbi=document.getElementById('lbi');
+let set=[],idx=0;
+function show(){const it=set[idx];lbi.src=it.src;lbi.alt=it.cap;document.getElementById('lbc').textContent=it.cap;document.getElementById('lbn').textContent=(idx+1)+' / '+set.length;
+  const one=set.length<2;document.getElementById('lbp').hidden=one;document.getElementById('lbs').hidden=one;document.getElementById('lbn').hidden=one}
+function open(s,i){set=s;idx=i;show();lb.classList.add('on');document.getElementById('lbx').focus()}
+function close(){lb.classList.remove('on');lbi.removeAttribute('src')}
+function step(d){idx=(idx+d+set.length)%set.length;show()}
+document.getElementById('lbx').onclick=close;
+document.getElementById('lbp').onclick=()=>step(-1);
+document.getElementById('lbs').onclick=()=>step(1);
+lb.addEventListener('click',e=>{if(e.target===lb)close()});
+addEventListener('keydown',e=>{if(!lb.classList.contains('on'))return;if(e.key==='Escape')close();if(e.key==='ArrowLeft')step(-1);if(e.key==='ArrowRight')step(1)});
+
+/* presentaciones */
+document.querySelectorAll('.deck').forEach(d=>{
+  const k=d.dataset.k,n=DECKS[k],t=d.dataset.t;
+  const imgs=Array.from({length:n},(_,i)=>({src:`img/slides/${k}/${pad(i+1)}.jpg`,cap:`${t} · diapositiva ${i+1}`}));
+  d.innerHTML=`<div class="top"><b>${t}</b><div class="ctl"><button class="ghost" data-d="-1" aria-label="Diapositiva anterior">‹</button><span>1 / ${n}</span><button class="ghost" data-d="1" aria-label="Diapositiva siguiente">›</button><button data-full aria-label="Ver en grande">Ver en grande</button></div></div>
+  <div class="strip" tabindex="0" aria-label="${t}">${imgs.map((m,i)=>`<img src="${m.src}" alt="${m.cap}" loading="lazy" data-i="${i}">`).join('')}</div>`;
+  const strip=d.querySelector('.strip'),lab=d.querySelector('.top span');
+  const cur=()=>{const w=strip.firstElementChild.getBoundingClientRect().width+12;return Math.round(strip.scrollLeft/w)};
+  const go=i=>{i=Math.max(0,Math.min(n-1,i));strip.children[i].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'})};
+  strip.addEventListener('scroll',()=>{lab.textContent=(Math.min(n,cur()+1))+' / '+n},{passive:true});
+  d.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>go(cur()+ +b.dataset.d));
+  d.querySelector('[data-full]').onclick=()=>open(imgs,cur());
+  strip.addEventListener('click',e=>{if(e.target.dataset.i)open(imgs,+e.target.dataset.i)});
+  strip.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();go(cur()+1)}if(e.key==='ArrowLeft'){e.preventDefault();go(cur()-1)}});
+});
+
+/* galería */
+const fotos=[['HP RC410-M','Placa ECS/HP RC410-M con su procesador a un lado'],['LX-3140','Placa KINIX / MSI LX-3140 con ranuras DDR2 verde y naranja'],['Placa dual socket HP','Placa de servidor HP con dos sockets y sus ranuras de memoria'],['Placa dual socket HP · otra vista','Ranuras de expansión y panel trasero de la placa de servidor'],['Inspección de placa','Socket, ranuras DIMM, conectores SATA/IDE y alimentación'],['Procesadores','Pentium Dual-Core E2140, Xeon y Celeron D']];
+const fset=fotos.map((f,i)=>({src:`img/fotos/${i+1}.jpg`,cap:f[0]+' · '+f[1]}));
+document.getElementById('galG').innerHTML=fotos.map((f,i)=>`<div class="card"><img class="ph" src="img/fotos/${i+1}.jpg" alt="${f[1]}" data-g="${i}" loading="lazy"><h4 style="margin-top:12px">${f[0]}</h4><p class="note">${f[1]}</p></div>`).join('');
+document.getElementById('galG').addEventListener('click',e=>{if(e.target.dataset.g)open(fset,+e.target.dataset.g)});
+document.querySelectorAll('img.zoom').forEach(im=>im.onclick=()=>open([{src:im.src,cap:im.dataset.cap}],0));
+
+/* pipeline */
+const st=['IF','ID','EX','MEM','WB'];
+let ph='<div class="h"></div>'+[1,2,3,4,5,6,7].map(c=>`<div class="h">C${c}</div>`).join('');
+for(let r=0;r<5;r++){ph+=`<div class="h">Instr ${r+1}</div>`;for(let c=0;c<7;c++){const s=c-r;ph+=s>=0&&s<5?`<div class="s${s+1}">${st[s]}</div>`:'<div></div>'}}
+document.getElementById('pipe').innerHTML=ph;
+
+/* procesadores */
+const cpus=[['Core Ultra 9 285K','24 (8P+16E) / 24','5.7 GHz','36 MB','125 W','LGA 1851',10960,1],['Core Ultra 7 270K Plus','24 (8P+16E) / 24','5.5 GHz','36 MB','125 W','LGA 1851',5560],['Core Ultra 7 265K','20 (8P+12E) / 20','5.5 GHz','30 MB','125 W','LGA 1851',7330],['Core Ultra 5 250K Plus','18 (6P+12E) / 18','5.3 GHz','30 MB','125 W','LGA 1851',3700,1],['Core Ultra 5 225','10 (6P+4E) / 10','4.9 GHz','20 MB','65 W','LGA 1851',4390],['Core i9-14900K','24 (8P+16E) / 32','6.0 GHz','36 MB','125 W','LGA 1700',10960],['Core i7-14700K','20 (8P+12E) / 28','5.6 GHz','33 MB','125 W','LGA 1700',7610],['Core i5-14400F','10 (6P+4E) / 16','4.7 GHz','20 MB','65 W','LGA 1700',3650],['Core i3-14100','4 / 8','4.7 GHz','12 MB','60 W','LGA 1700',2490,1],['Intel Processor 300','2 / 4','3.9 GHz','6 MB','46 W','LGA 1700',1530],
+['Ryzen 9 9950X3D','16 / 32','5.7 GHz','128 MB','170 W','AM5',13000,1],['Ryzen 9 9950X','16 / 32','5.7 GHz','64 MB','170 W','AM5',12070],['Ryzen 7 9850X3D','8 / 16','5.6 GHz','96 MB','120 W','AM5',9280],['Ryzen 7 9800X3D','8 / 16','5.2 GHz','96 MB','120 W','AM5',8910],['Ryzen 7 9700X','8 / 16','5.5 GHz','32 MB','65 W','AM5',6680],['Ryzen 5 9600X','6 / 12','5.4 GHz','32 MB','65 W','AM5',5190,1],['Ryzen 7 8700G','8 / 16','5.1 GHz','16 MB','65 W','AM5',6120],['Ryzen 5 7600','6 / 12','5.1 GHz','32 MB','65 W','AM5',4260],['Ryzen 5 8500G','6 / 12','5.0 GHz','16 MB','65 W','AM5',3330,1],['Ryzen 5 5600','6 / 12','4.4 GHz','32 MB','65 W','AM4',3700]];
+document.getElementById('cpuT').innerHTML=cpus.map(c=>`<tr${c[7]?' class="hl"':''}><td><b>${c[0]}</b></td><td>${c[1]}</td><td class="r">${c[2]}</td><td class="r">${c[3]}</td><td class="r">${c[4]}</td><td style="white-space:nowrap">${c[5]}</td><td class="r">${money(c[6])}</td></tr>`).join('');
+
+/* equipos */
+const eqs=[['Gama baja · Intel','Core i3-14100','Gigabyte B760M K DDR4','16 GB DDR4 3200','SSD Kingston NV3 1 TB','Gráficos integrados UHD 730','Gabinete con fuente 500 W','Oficina y escuela',11317,12375],
+['Gama baja · AMD','Ryzen 5 8500G','Gigabyte A620M H','16 GB DDR5 5600','SSD Kingston NV3 1 TB','Gráficos integrados Radeon 740M','Gabinete con fuente 500 W','Oficina, escuela y juegos ligeros',11177,12219],
+['Gama media · Intel','Core Ultra 5 250K Plus','MSI B860M Gaming Plus WiFi6E','32 GB DDR5 6000','SSD Kingston NV3 1 TB','GeForce RTX 5060 8 GB','MSI MAG A650GN II 650 W Gold','Gaming 1080p y programación',30758,33998],
+['Gama media · AMD','Ryzen 5 9600X','ASRock B650M-H/M.2+','32 GB DDR5 6000 CL30','SSD Kingston NV3 1 TB','Radeon RX 9060 XT 16 GB','MSI MAG A650GN II 650 W Gold','Gaming 1080p/1440p y diseño',31738,35095],
+['Gama alta · Intel','Core Ultra 9 285K','ASUS TUF Gaming Z890-Plus WiFi','32 GB DDR5 6000 CL30','SSD 1 TB PCIe 5.0 + 1 TB PCIe 4.0','GeForce RTX 5080 16 GB','Corsair RM1000e 1000 W Gold','Gaming 4K, edición y render',73591,81820],
+['Gama alta · AMD','Ryzen 9 9950X3D','MSI X870E Gaming Plus WiFi','64 GB DDR5 6000','SSD 1 TB PCIe 5.0 + 1 TB PCIe 4.0','Radeon RX 9070 XT 16 GB','ASUS TUF Gaming 1000G EVO 1000 W','Gaming, edición 4K y trabajo pesado',74431,82763]];
+document.getElementById('eqG').innerHTML=eqs.map((e,i)=>`<div class="card"><span class="num">Equipo ${i+1} · ${e[0]}</span><h4>${e[1]}</h4><ul><li>${e[2]}</li><li>${e[3]}</li><li>${e[4]}</li><li>${e[5]}</li><li>${e[6]}</li></ul><p class="note">Uso: ${e[7]}</p></div>`).join('');
+const max=Math.max(...eqs.map(e=>e[9]));
+document.getElementById('bars').innerHTML=eqs.map((e,i)=>`<div class="row"><div class="lbl">Equipo ${i+1} · ${e[1]}</div><div><div class="b l" style="width:${e[9]/max*100}%"></div><div class="b w" style="width:${e[8]/max*100}%"></div><small>${money(e[9])} local · ${money(e[8])} Internet</small></div></div>`).join('');
+document.getElementById('cotT').innerHTML=eqs.map((e,i)=>`<tr><td>${i+1}. ${e[1]}</td><td>${e[0].split(' · ')[0].replace('Gama ','')}</td><td class="r">${money(e[9])}</td><td class="r">${money(e[8])}</td><td class="r"><b>${money(e[9]-e[8])}</b></td></tr>`).join('');
+
+/* Amdahl */
+const P=[1,2,4,8,16,32,64,128,256,512,1024];
+const af=document.getElementById('af'),ap=document.getElementById('ap');
+function amd(){const f=af.value/100,p=P[ap.value],s=1/((1-f)+f/p);
+  document.getElementById('afv').textContent=af.value+' %';document.getElementById('apv').textContent=p;
+  document.getElementById('as').textContent=s.toFixed(2)+'×';document.getElementById('ae').textContent=Math.round(s/p*100)+' %';
+  document.getElementById('am').textContent=(+(1/(1-f)).toFixed(1))+'×'}
+af.oninput=amd;ap.oninput=amd;amd();
+
+fetch('docs/tarea-gamas.pdf',{method:'HEAD'}).then(r=>{if(!r.ok)throw 0}).catch(()=>{document.getElementById('docnote').hidden=false});
+route();
+}
+</script>
+</body>
+</html>
